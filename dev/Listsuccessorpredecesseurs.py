@@ -57,8 +57,7 @@ def successors_predecesseurs(table_columns_relations):
     # print(following_arcs)
     # print(followers_arcs)
     # print(list_dict_successors_predecessors)
-
-    return [following_nodes,following_arcs, followers_nodes, followers_arcs, cyto_nodes, cyto_arcs]
+    return [following_nodes, following_arcs, followers_nodes, followers_arcs, cyto_nodes, cyto_arcs]
 
 
 

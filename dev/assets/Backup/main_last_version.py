@@ -23,9 +23,7 @@ list_dict_successors_predecessors=Listsuccessorpredecesseurs.successors_predeces
 # genesis_node ={}
 joined_list = [*list_dict_successors_predecessors[4], *list_dict_successors_predecessors[5]]
 default_elements=joined_list
-default_elements=construct_allnodes.set_all_nodes_arcs(default_elements)
-# print(list_dict_successors_predecessors)
-
+print(list_dict_successors_predecessors)
 # {'data': {'id': '108082478497335384404', 'label': 'User #84404'}, 'classes': 'genesis'}
 styles = {
     'pre': {
@@ -279,40 +277,48 @@ def update_cytoscape_layout(layout):
 
 
 @app.callback(Output('cytoscape-event-callbacks-1', 'elements'),
-              Output('cytoscape-event-callbacks-1','stylesheet'),
               [Input('cytoscape-event-callbacks-1', 'tapNodeData')],
               [State('cytoscape-event-callbacks-1', 'elements'),
                State('radio-expand', 'value')])
 
 def generate_elements(nodeData, elements, expansion_mode):
     if not nodeData:
-        return default_elements, default_stylesheet
+        return default_elements
 
     # If the node has already been expanded, we don't expand it again
     # if nodeData.get('expanded'):
     #     return elements
 
-
     # This retrieves the currently selected element, and tag it as expanded
-    # for element in elements:
-    #     if nodeData['id'] == element.get('data').get('id'):
-    #         element['data']['expanded'] = True
-    #         break
     for element in elements:
-        print(nodeData)
-        print(element.get('selectable'))
-        if (nodeData['id'] == element.get('data').get('id')):
-            if (element.get('selectable')==True):
-                element['data']['expanded'] = True
-                break
-            else:
-                return elements,default_stylesheet
+        if nodeData['id'] == element.get('data').get('id'):
+            element['data']['expanded'] = True
+            break
 
-    all_nodes=construct_allnodes.allnodes_of_a_node\
-        (list_dict_successors_predecessors[2].get(nodeData['id']),
-         list_dict_successors_predecessors[0].get(nodeData['id']))
+    all_nodes=construct_allnodes.allnodes_of_a_node(list_dict_successors_predecessors[2].get(nodeData['id'])
+                                                    ,list_dict_successors_predecessors[0].get(nodeData['id']))
 
-    # print(all_nodes)
+    # if((list_dict_successors_predecessors[2].get(nodeData['id']) is None)
+    #     and list_dict_successors_predecessors[0].get(nodeData['id']) is not None):
+    #     all_nodes=list_dict_successors_predecessors[0].get(nodeData['id'])
+    # elif((list_dict_successors_predecessors[0].get(nodeData['id']) is None) and
+    #       (list_dict_successors_predecessors[2].get(nodeData['id']) is not None)):
+    #     all_nodes=list_dict_successors_predecessors[2].get(nodeData['id'])
+    # elif((list_dict_successors_predecessors[0].get(nodeData['id']) is None) and
+    #       (list_dict_successors_predecessors[2].get(nodeData['id']) is None)):
+    #     all_nodes=None
+    # else:
+    #     all_nodes=list_dict_successors_predecessors[2].get(nodeData['id'])+\
+    #     list_dict_successors_predecessors[0].get(nodeData['id'])
+
+    print(all_nodes)
+
+    # [x for x in L if x is not None]
+
+    # print(list_dict_successors_predecessors[2].get(nodeData['id']))
+    # print(list_dict_successors_predecessors[0].get(nodeData['id']))
+    # print(type(list_dict_successors_predecessors[3].get(nodeData['id'])))
+    # print(type(list_dict_successors_predecessors[1].get(nodeData['id'])))
 
     if expansion_mode == 'predecessors':
 
@@ -353,36 +359,13 @@ def generate_elements(nodeData, elements, expansion_mode):
                 for i in range(0, len(elements)):
                     if(elements[i].get('data').get("id") == node['data']['id']):
                         elements[i]=node
-                        # elements[i]['classes']='ffNodes'
+                        elements[i]['classes']='ffNodes'
                         break
 
         for element in elements:
-            if (element.get('classes')!='ffNodes'):
-                element['classes'] ='notSelect'
-                element['selectable']=False
-            else:
-                element['selectable']=True
-
-
-        # for element in elements:
-        #      if(element['selectable']==False):
-        #         print(element)
-
-    def new_stylesheet(stylesheet):
-        stylesheet.append(
-            {
-            'selector': '.notSelect',
-                'style': {
-                    'background-color': '#dc7699'
-                }
-            }
-        )
-        return stylesheet
-
-
-    stylesheet=new_stylesheet(default_stylesheet)
-    # print('This is {}'.format(stylesheet))
-    return elements, stylesheet
+            if (element.get('data').get('classes')!='ffNodes'):
+                element['data']['classes'] ='notSelect'
+    return elements
 
 if __name__ == '__main__':
     # metadata = ConstDF.readbd()

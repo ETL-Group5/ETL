@@ -1,6 +1,5 @@
 import ConstDF
 import NodesRelations
-import construct_allnodes
 import dash
 import dash_bootstrap_components as dbc
 import dash_html_components as html
@@ -23,9 +22,7 @@ list_dict_successors_predecessors=Listsuccessorpredecesseurs.successors_predeces
 # genesis_node ={}
 joined_list = [*list_dict_successors_predecessors[4], *list_dict_successors_predecessors[5]]
 default_elements=joined_list
-default_elements=construct_allnodes.set_all_nodes_arcs(default_elements)
-# print(list_dict_successors_predecessors)
-
+print(list_dict_successors_predecessors)
 # {'data': {'id': '108082478497335384404', 'label': 'User #84404'}, 'classes': 'genesis'}
 styles = {
     'pre': {
@@ -60,12 +57,6 @@ default_stylesheet = [
         'selector': '.followerNode',
         'style': {
             'background-color': '#0074D9'
-        }
-    },
-    {
-        'selector': '.ffNodes',
-        'style': {
-            'background-color': '#407294'
         }
     },
     {
@@ -174,10 +165,9 @@ app.layout = html.Div(children=[
                                           id='radio-expand',
                                           options=drc.DropdownOptionsList(
                                               'predecessors',
-                                              'successors',
-                                              'All for the node'
+                                              'successors'
                                           ),
-                                          value='All for the node'
+                                          value='predecessors'
                                       )
 
                                   ]),
@@ -277,42 +267,24 @@ def displayMouseonNodeData(data):
 def update_cytoscape_layout(layout):
     return {'name': layout}
 
-
 @app.callback(Output('cytoscape-event-callbacks-1', 'elements'),
-              Output('cytoscape-event-callbacks-1','stylesheet'),
               [Input('cytoscape-event-callbacks-1', 'tapNodeData')],
               [State('cytoscape-event-callbacks-1', 'elements'),
                State('radio-expand', 'value')])
 
 def generate_elements(nodeData, elements, expansion_mode):
     if not nodeData:
-        return default_elements, default_stylesheet
+        return default_elements
 
     # If the node has already been expanded, we don't expand it again
     # if nodeData.get('expanded'):
     #     return elements
 
-
     # This retrieves the currently selected element, and tag it as expanded
-    # for element in elements:
-    #     if nodeData['id'] == element.get('data').get('id'):
-    #         element['data']['expanded'] = True
-    #         break
     for element in elements:
-        print(nodeData)
-        print(element.get('selectable'))
-        if (nodeData['id'] == element.get('data').get('id')):
-            if (element.get('selectable')==True):
-                element['data']['expanded'] = True
-                break
-            else:
-                return elements,default_stylesheet
-
-    all_nodes=construct_allnodes.allnodes_of_a_node\
-        (list_dict_successors_predecessors[2].get(nodeData['id']),
-         list_dict_successors_predecessors[0].get(nodeData['id']))
-
-    # print(all_nodes)
+        if nodeData['id'] == element.get('data').get('id'):
+            element['data']['expanded'] = True
+            break
 
     if expansion_mode == 'predecessors':
 
@@ -345,44 +317,7 @@ def generate_elements(nodeData, elements, expansion_mode):
                 follower_edge['classes'] = 'followingEdge'
             elements.extend(following_arcs)
 
-    elif expansion_mode == 'All for the node':
-        if all_nodes:
-            for node in all_nodes:
-                node['classes'] ='ffNodes'
-                # elements.append(node)
-                for i in range(0, len(elements)):
-                    if(elements[i].get('data').get("id") == node['data']['id']):
-                        elements[i]=node
-                        # elements[i]['classes']='ffNodes'
-                        break
-
-        for element in elements:
-            if (element.get('classes')!='ffNodes'):
-                element['classes'] ='notSelect'
-                element['selectable']=False
-            else:
-                element['selectable']=True
-
-
-        # for element in elements:
-        #      if(element['selectable']==False):
-        #         print(element)
-
-    def new_stylesheet(stylesheet):
-        stylesheet.append(
-            {
-            'selector': '.notSelect',
-                'style': {
-                    'background-color': '#dc7699'
-                }
-            }
-        )
-        return stylesheet
-
-
-    stylesheet=new_stylesheet(default_stylesheet)
-    # print('This is {}'.format(stylesheet))
-    return elements, stylesheet
+    return elements
 
 if __name__ == '__main__':
     # metadata = ConstDF.readbd()

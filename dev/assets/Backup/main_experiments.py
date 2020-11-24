@@ -1,6 +1,5 @@
 import ConstDF
 import NodesRelations
-import construct_allnodes
 import dash
 import dash_bootstrap_components as dbc
 import dash_html_components as html
@@ -20,12 +19,11 @@ app = dash.Dash(__name__,external_stylesheets=[dbc.themes.BOOTSTRAP])
 metadata=ConstDF.readbd()
 default_elements=NodesRelations.elements(metadata)
 list_dict_successors_predecessors=Listsuccessorpredecesseurs.successors_predecesseurs(metadata['table_columns_relations'])
-# genesis_node ={}
+first_node ={}
 joined_list = [*list_dict_successors_predecessors[4], *list_dict_successors_predecessors[5]]
 default_elements=joined_list
-default_elements=construct_allnodes.set_all_nodes_arcs(default_elements)
-# print(list_dict_successors_predecessors)
-
+print(default_elements)
+#print(list_dict_successors_predecessors)
 # {'data': {'id': '108082478497335384404', 'label': 'User #84404'}, 'classes': 'genesis'}
 styles = {
     'pre': {
@@ -60,12 +58,6 @@ default_stylesheet = [
         'selector': '.followerNode',
         'style': {
             'background-color': '#0074D9'
-        }
-    },
-    {
-        'selector': '.ffNodes',
-        'style': {
-            'background-color': '#407294'
         }
     },
     {
@@ -118,6 +110,12 @@ default_stylesheet = [
             "font-size": 12,
             'z-index': 9999
         }
+    },
+    {
+       'selector': ':selectable',
+        "style": {
+            "border-color": "black",
+        }
     }
 ]
 
@@ -138,11 +136,12 @@ app.layout = html.Div(children=[
                               html.P('''Select the relations you would like to keep.'''),
                               dcc.Dropdown(
                                   options=[
-                                      {'label': 'New York City', 'value': 'NYC'},
-                                      {'label': u'Montréal', 'value': 'MTL'},
-                                      {'label': 'San Francisco', 'value': 'SF'}
+                                      {'label': name.capitalize(), 'value': name}
+                                      for name in ['relation1', 'relation2', 'relation3']
+                                      # {'label': u'Montréal', 'value': 'MTL'},
+                                      # {'label': 'San Francisco', 'value': 'SF'}
                                   ],
-                                  value=['MTL', 'SF'],
+                                  # value=['MTL', 'SF'],
                                   multi=True
                               ),
                               # dcc.Checklist(
@@ -153,6 +152,7 @@ app.layout = html.Div(children=[
                               #     ],
                               #     value=['MTL', 'SF']
                               # ),
+                              html.Br(),
                               dcc.Tabs(id='tabs', children=[
                                   dcc.Tab(label='Control Panel', children=[
                                       drc.NamedDropdown(
@@ -166,7 +166,7 @@ app.layout = html.Div(children=[
                                               'breadthfirst',
                                               'cose'
                                           ),
-                                          value='grid',
+                                          value='circle',
                                           clearable=False
                                       ),
                                       drc.NamedRadioItems(
@@ -174,10 +174,9 @@ app.layout = html.Div(children=[
                                           id='radio-expand',
                                           options=drc.DropdownOptionsList(
                                               'predecessors',
-                                              'successors',
-                                              'All for the node'
+                                              'successors'
                                           ),
-                                          value='All for the node'
+                                          value='predecessors'
                                       )
 
                                   ]),
@@ -236,11 +235,15 @@ app.layout = html.Div(children=[
                                 # html.Pre(id='cytoscape-tapNodeData-json', style=styles['pre']),
                                 html.P(id='cytoscape-tapNodeData-output'),
                                 html.P(id='cytoscape-mouseoverNodeData-output'),
-                                dcc.Textarea(
-                                    placeholder='Enter a value...',
-                                    value='This is a TextArea component',
-                                    style={'width': '70%'}
-                                )
+                                html.Div(className='eight.columns',
+                                         children=[
+                                             dcc.Textarea(
+                                                    placeholder='Enter a value...',
+                                                    value='This is a TextArea component',
+                                                    style={
+                                                        'width': '100%'}
+                                             )
+                                         ])
                           ])  # Define the right element
              ])
 ])
@@ -255,6 +258,8 @@ app.layout = html.Div(children=[
 # def displayTapNodeData(data):
 #     if data:
 #         return "You recently clicked/tapped the city: " + data['label']
+
+
 
 @app.callback(Output('tap-node-json-output', 'children'),
               [Input('cytoscape-event-callbacks-1', 'tapNode')])
@@ -275,114 +280,85 @@ def displayMouseonNodeData(data):
 @app.callback(Output('cytoscape-event-callbacks-1', 'layout'),
               [Input('dropdown-layout', 'value')])
 def update_cytoscape_layout(layout):
-    return {'name': layout}
-
+    return {'name': layout,
+            'animate': True}
 
 @app.callback(Output('cytoscape-event-callbacks-1', 'elements'),
-              Output('cytoscape-event-callbacks-1','stylesheet'),
               [Input('cytoscape-event-callbacks-1', 'tapNodeData')],
               [State('cytoscape-event-callbacks-1', 'elements'),
                State('radio-expand', 'value')])
 
 def generate_elements(nodeData, elements, expansion_mode):
     if not nodeData:
-        return default_elements, default_stylesheet
+        return default_elements
 
     # If the node has already been expanded, we don't expand it again
     # if nodeData.get('expanded'):
     #     return elements
 
+    # nodes_selectable=[list_dict_successors_predecessors[2].get(nodeData['id']),
+    #                   list_dict_successors_predecessors[0].get(nodeData['id'])]
+    # arcs_selectable = [list_dict_successors_predecessors[3].get(nodeData['id']),
+    #                  list_dict_successors_predecessors[1].get(nodeData['id'])]
 
     # This retrieves the currently selected element, and tag it as expanded
-    # for element in elements:
-    #     if nodeData['id'] == element.get('data').get('id'):
-    #         element['data']['expanded'] = True
-    #         break
     for element in elements:
-        print(nodeData)
-        print(element.get('selectable'))
-        if (nodeData['id'] == element.get('data').get('id')):
-            if (element.get('selectable')==True):
-                element['data']['expanded'] = True
-                break
-            else:
-                return elements,default_stylesheet
+        if nodeData['id'] == element.get('data').get('id'):
+            element['data']['expanded'] = True
+            break
 
-    all_nodes=construct_allnodes.allnodes_of_a_node\
-        (list_dict_successors_predecessors[2].get(nodeData['id']),
-         list_dict_successors_predecessors[0].get(nodeData['id']))
+    followers_nodes = list_dict_successors_predecessors[2].get(nodeData['id'])
+    followers_arcs = list_dict_successors_predecessors[3].get(nodeData['id'])
 
-    # print(all_nodes)
+    following_nodes = list_dict_successors_predecessors[0].get(nodeData['id'])
+    following_arcs = list_dict_successors_predecessors[1].get(nodeData['id'])
+
+    # print(nodeData['id'], following_nodes)
+    # print(nodeData['id'], followers_nodes)
 
     if expansion_mode == 'predecessors':
-
-        followers_nodes = list_dict_successors_predecessors[2].get(nodeData['id'])
-        followers_arcs = list_dict_successors_predecessors[3].get(nodeData['id'])
 
         if followers_nodes:
             for node in followers_nodes:
                 node['classes'] = 'followerNode'
+                # for i in range(0, len(elements)):
+                #     if(elements[i].get('data').get("id") == node['data']['id']):
+                #         elements[i]=node
+                #         pass
             elements.extend(followers_nodes)
 
         if followers_arcs:
-            for follower_edge in followers_arcs:
-                follower_edge['classes'] = 'followerEdge'
+            for follower_arc in followers_arcs:
+                follower_arc['classes'] = 'followerEdge'
+                # for i in range(0, len(elements)):
+                #     if (elements[i].get('data').get("id") == follower_arc['data']['id']):
+                #         elements[i] = follower_arc
+                #         pass
             elements.extend(followers_arcs)
 
     elif expansion_mode == 'successors':
-
-        following_nodes = list_dict_successors_predecessors[0].get(nodeData['id'])
-        following_arcs = list_dict_successors_predecessors[1].get(nodeData['id'])
 
         if following_nodes:
             for node in following_nodes:
                 # if node['data']['id'] != genesis_node['data']['id']:
                     node['classes'] = 'followingNode'
+                    # for i in range(0, len(elements)):
+                    #     if(elements[i].get('data').get("id") == node['data']['id']):
+                    #         elements[i]=node
+                    #         pass
                     elements.append(node)
 
+
         if following_arcs:
-            for follower_edge in following_arcs:
-                follower_edge['classes'] = 'followingEdge'
+            for following_arc in following_arcs:
+                following_arc['classes'] = 'followingEdge'
+                # for i in range(0, len(elements)):
+                #     if (elements[i].get('data').get("id") == following_arc['data']['id']):
+                #         elements[i] = following_arc
+                #         pass
             elements.extend(following_arcs)
 
-    elif expansion_mode == 'All for the node':
-        if all_nodes:
-            for node in all_nodes:
-                node['classes'] ='ffNodes'
-                # elements.append(node)
-                for i in range(0, len(elements)):
-                    if(elements[i].get('data').get("id") == node['data']['id']):
-                        elements[i]=node
-                        # elements[i]['classes']='ffNodes'
-                        break
-
-        for element in elements:
-            if (element.get('classes')!='ffNodes'):
-                element['classes'] ='notSelect'
-                element['selectable']=False
-            else:
-                element['selectable']=True
-
-
-        # for element in elements:
-        #      if(element['selectable']==False):
-        #         print(element)
-
-    def new_stylesheet(stylesheet):
-        stylesheet.append(
-            {
-            'selector': '.notSelect',
-                'style': {
-                    'background-color': '#dc7699'
-                }
-            }
-        )
-        return stylesheet
-
-
-    stylesheet=new_stylesheet(default_stylesheet)
-    # print('This is {}'.format(stylesheet))
-    return elements, stylesheet
+    return elements
 
 if __name__ == '__main__':
     # metadata = ConstDF.readbd()
