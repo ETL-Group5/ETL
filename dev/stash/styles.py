@@ -3,7 +3,7 @@ def difine_styles():
         {
             "selector": 'node',
             'style': {
-                "opacity": 1,
+                "opacity": 0.65,
                 'z-index': 9999
             }
         },
@@ -11,14 +11,14 @@ def difine_styles():
             "selector": 'edge',
             'style': {
                 "curve-style": "bezier",
-                "opacity": 0.15,
+                "opacity": 0.45,
                 'z-index': 5000
             }
         },
         {
             'selector': '.followerNode',
             'style': {
-                'background-color': '$primary'
+                'background-color': '#0074D9'
             }
         },
         {

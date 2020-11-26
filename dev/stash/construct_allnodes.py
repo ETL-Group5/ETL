@@ -14,7 +14,3 @@ def set_all_nodes_arcs(elements):
     for element in elements:
          element['selectable']=True
     return elements
-
-def set_list_relations(current_list,list_element):
-    current_list.append(list_element)
-    return current_list
