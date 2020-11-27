@@ -1,13 +1,14 @@
 import ConstDF
-import NodesRelations
+# import NodesRelations
 import construct_allnodes
 import dash
 import dash_bootstrap_components as dbc
 import dash_html_components as html
 import dash_core_components as dcc
 import dash_reusable_components as drc
-import plotly.express as px
+# import plotly.express as px
 import Listsuccessorpredecesseurs
+import Query
 from dash.dependencies import Input, Output, State
 import dash_cytoscape as cyto
 import json
@@ -18,7 +19,7 @@ cyto.load_extra_layouts()
 app = dash.Dash(__name__,external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 metadata=ConstDF.readbd()
-default_elements=NodesRelations.elements(metadata)
+# default_elements=NodesRelations.elements(metadata)
 list_dict_successors_predecessors=Listsuccessorpredecesseurs.successors_predecesseurs(metadata['table_columns_relations'])
 joined_list = [*list_dict_successors_predecessors[4], *list_dict_successors_predecessors[5]]
 default_elements=joined_list
@@ -148,8 +149,11 @@ app.layout = html.Div(children=[
                                   # value=['MTL', 'SF'],
                                   clearable=True,
                                   placeholder="Select relations tables",
-                                  multi=True
-                              ),
+                                  multi=True,
+                                  # style={'background-color': '#4CAF50',
+                                  #         'color':'white'
+                                  #        }
+                                  ),
                               # dcc.Checklist(
                               #     options=[
                               #         {'label': 'New York City', 'value': 'NYC'},
@@ -172,7 +176,7 @@ app.layout = html.Div(children=[
                                               'cose'
                                           ),
                                           value='grid',
-                                          clearable=False
+                                          clearable=False,
                                       ),
                                       drc.NamedRadioItems(
                                           name='Expand',
@@ -228,8 +232,6 @@ app.layout = html.Div(children=[
                  html.Div(className='eight columns div-for-charts bg-grey',
                           children=[
                               cyto.Cytoscape(
-                                          # id='cytoscape-two-nodes',
-                                          #id='cytoscape-callbacks-1',
                                           id='cytoscape-event-callbacks-1',
                                           stylesheet=default_stylesheet,
                                           # layout={'name': 'circle'},
@@ -262,12 +264,43 @@ app.layout = html.Div(children=[
                                 # html.Pre(id='cytoscape-tapNodeData-json', style=styles['pre']),
                                 html.P(id='cytoscape-tapNodeData-output'),
                                 html.P(id='cytoscape-mouseoverNodeData-output'),
+                                dcc.ConfirmDialogProvider(
+                                    children=html.Button(
+                                        children='Create the query',
+                                        id='id-button-query',
+                                        n_clicks=0,
+                                        className='button-querry',
+                                        style={'background-color': '#4CAF50',
+                                                'color':'white',
+                                                'width': '250px',
+                                                'box-shadow': '0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19)'
+                                               }
+                                    ),
+                                  id='create_the_query',
+                                  message='You have selected the tables relations. '
+                                          'Your SQL query will be created'
+                                ),
                                 dcc.Textarea(
                                     id='sql-querry',
-                                    placeholder='Correct the querry',
-                                    value='This is a TextArea component',
-                                    style={'width': '70%'}
-                                )
+                                    placeholder='Correct the query',
+                                    # value='This is a TextArea component',
+                                    style={'width': '100%'}
+                                ),
+                                dcc.ConfirmDialogProvider(
+                                    children=html.Button(
+                                        'Execute the Query',
+                                        n_clicks=0,
+                                        className='button-execute-querry',
+                                        style={'background-color': '#4CAF50',
+                                                'color':'white',
+                                                'width': '250px',
+                                                'box-shadow': '0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19)',
+                                                'position':'absolute'
+                                               }
+                                    ),
+                                  id='execute_the_query',
+                                  message='Your query will be executed'
+                                ),
                           ])  # Define the right element
              ])
 ])
@@ -281,9 +314,18 @@ def add_relations_to_DropdownOptions(jsonified_cleaned_data):
          'value':nom_relation} for nom_relation in relations_flatten]
     relations_drop_menu.extend(relations_items)
     return relations_drop_menu
-#
-# @app.callback(Output('sql-querry','value'),
-#               [Input('tab-relation-json-output', 'children')])
+
+@app.callback(Output('sql-querry', 'value'),
+              [Input('create_the_query', 'submit_n_clicks')],
+              [Input('tables-relation', 'value')])
+def create_query(submit_n_clicks, value):
+    if not submit_n_clicks:
+        return ''
+    # return """
+    #     Submitted "{}" times,
+    #     values is "{}"
+    #     """.format(submit_n_clicks, Query.query_and_store(value, list_dict_successors_predecessors[5]))
+    return Query.query_and_store(value, list_dict_successors_predecessors[5])
 
 
 # @app.callback(Output('cytoscape-tapNodeData-json', 'children'),
@@ -303,7 +345,6 @@ def add_relations_to_DropdownOptions(jsonified_cleaned_data):
 #     return json.dumps(data, indent=2)
 
 
-
 @app.callback(Output('tap-edge-json-output', 'children'),
               [Input('cytoscape-event-callbacks-1', 'tapEdge')])
 def display_tap_edge(data):
@@ -313,7 +354,7 @@ def display_tap_edge(data):
                     Input('cytoscape-event-callbacks-1', 'mouseoverNodeData'))
 def displayMouseonNodeData(data):
     if data:
-        return "You are hovering on the node: " + data['label']
+        return "You are hovering on the table: " + data['label']
 
 @app.callback(Output('cytoscape-event-callbacks-1', 'layout'),
               [Input('dropdown-layout', 'value')])
@@ -451,7 +492,6 @@ def generate_elements(nodeData, elements, expansion_mode):
             }
         )
         return stylesheet
-
 
     a.extend(b)
     stylesheet=new_stylesheet(default_stylesheet)
