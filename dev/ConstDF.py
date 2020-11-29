@@ -1,6 +1,6 @@
 import sqlalchemy
-import pandas as pd
 import cx_Oracle
+import pandas as pd
 
 
 def queryconstr(md_elem, connectBDD):
@@ -52,4 +52,4 @@ def readbd():
         metadata[elem]=queryconstr(elem, connection)
     # print(type(metadata['table_columns_relations']))
 
-    return metadata
+    return metadata, connection

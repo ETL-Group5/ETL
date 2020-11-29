@@ -134,8 +134,23 @@ app.layout = html.Div(children=[
                               html.H2('Magic Automatic SQL Queries Generator'),
                               html.H5('''Visualising the data base with Plotly - Dash'''),
                               html.P('''Select the relations between tables you would like to have by clicking on the nodes.'''),
+                              # dcc.Dropdown(
+                              #     id='tables-relation',
+                              #     clearable=True,
+                              #     placeholder="Select relations tables",
+                              #     multi=True,
+                              #     # style={'background-color': '#4CAF50',
+                              #     #         'color':'white'
+                              #     #        }
+                              #     ),
                               # dbc.Label("Switch on the relations you want to keep"),
                               dbc.Checklist(
+                                  # options=[
+                                  #     {"label": "Option 1", "value": 1},
+                                  #     {"label": "Option 2", "value": 2},
+                                  #     {"label": "Disabled Option", "value": 3, "disabled": True},
+                                  # ],
+                                  # value=[],
                                   id="Relations-Tables-Toggle",
                                   switch=True,
                                   inline=True,
@@ -230,6 +245,28 @@ app.layout = html.Div(children=[
                                 # html.Pre(id='cytoscape-tapNodeData-json', style=styles['pre']),
                                 html.P(id='cytoscape-tapNodeData-output'),
                                 html.P(id='cytoscape-mouseoverNodeData-output'),
+                                # dcc.ConfirmDialogProvider(
+                                #     children=html.Button(
+                                #         children='Create the query',
+                                #         id='id-button-query',
+                                #         n_clicks=0,
+                                #         className='button-querry',
+                                #         style={'background-color': '#4CAF50',
+                                #                 'color':'white',
+                                #                 'width': '250px',
+                                #                 'box-shadow': '0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19)'
+                                #                }
+                                #     ),
+                                #   id='create_the_query',
+                                #   message='You have selected the tables relations. '
+                                #           'Your SQL query will be created'
+                                # ),
+                                # dcc.Textarea(
+                                #     id='sql-querry',
+                                #     placeholder='Correct the query',
+                                #     # value='This is a TextArea component',
+                                #     style={'width': '100%'}
+                                # ),
                                 html.Div(
                                     [
                                         dbc.Button("Create the Query", id="query-button-create", className="mr-2",
@@ -237,6 +274,7 @@ app.layout = html.Div(children=[
                                                           'color': 'white',
                                                           'width': '250px',
                                                           'box-shadow': '0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19)',
+                                                          # 'position': 'absolute'
                                                           },
                                                    n_clicks=0,
                                                    ),
@@ -259,6 +297,17 @@ app.layout = html.Div(children=[
                                         # html.Span(id="example-output", style={"vertical-align": "middle"}),
                                     ]
                                 ),
+                                # html.Div(
+                                #     [
+                                #         dbc.Textarea(
+                                #             id='sql-querry-dbc',
+                                #             valid=True,
+                                #             # bs_size="sm",
+                                #             className="mb-3",
+                                #             placeholder="Modify Query",
+                                #         ),
+                                #     ]
+                                # ),
                               html.Div(
                                   [
                                       dbc.Button("Execute the Query", id="query-button-execute", className="mr-2",
@@ -280,6 +329,21 @@ app.layout = html.Div(children=[
                                       # html.Span(id="example-output", style={"vertical-align": "middle"}),
                                   ]
                               ),
+                                # dcc.ConfirmDialogProvider(
+                                #     children=html.Button(
+                                #         'Execute the Query',
+                                #         n_clicks=0,
+                                #         className='button-execute-querry',
+                                #         style={'background-color': '#4CAF50',
+                                #                 'color':'white',
+                                #                 'width': '250px',
+                                #                 'box-shadow': '0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19)',
+                                #                 'position':'absolute'
+                                #                }
+                                #     ),
+                                #   id='execute_the_query',
+                                #   message='Your query will be executed'
+                                # ),
                           ])  # Define the right element
              ])
 ])
@@ -294,6 +358,25 @@ def show_table(node, is_open):
         return is_open
     df=construct_allnodes.make_table(metadata['table_columns'], node['data']['label'])
     return not is_open
+# @app.callback(
+#     Output("popover", "is_open"),
+#     [Input('cytoscape-event-callbacks-1', "tapNode")],
+#     [State("popover", "is_open")],
+# )
+# def toggle_popover(node, is_open):
+#     if node:
+#         return not is_open
+#     return is_open
+
+# @app.callback(Output('tables-relation','options'),
+#               [Input('tab-relation-json-output', 'children')])
+# def add_relations_to_DropdownOptions(jsonified_cleaned_data):
+#     relations = json.loads(jsonified_cleaned_data)
+#     relations_flatten = [item for sublist in relations for item in sublist]
+#     relations_items = [{'label': nom_relation,
+#          'value':nom_relation} for nom_relation in relations_flatten]
+#     relations_drop_menu.extend(relations_items)
+#     return relations_drop_menu
 
 @app.callback(Output('Relations-Tables-Toggle','options'),
               [Input('tab-relation-json-output', 'children')])
@@ -322,6 +405,20 @@ def execute_query(n_clicks, value):
     if ((not n_clicks) or (value is None)):
         return ''
     return Query.execute_query(value, connection)
+
+
+# def create_query(submit_n_clicks, value):
+#     if ((not submit_n_clicks) or (value is None)):
+#         return ''
+#     return Query.query_and_store(value, list_dict_successors_predecessors[5])
+
+# @app.callback(Output('sql-querry', 'value'),
+#               [Input('create_the_query', 'submit_n_clicks')],
+#               [Input('tables-relation', 'value')])
+# def create_query(submit_n_clicks, value):
+#     if ((not submit_n_clicks) or (value is None)):
+#         return ''
+#     return Query.query_and_store(value, list_dict_successors_predecessors[5])
 
 @app.callback(Output('tap-edge-json-output', 'children'),
               [Input('cytoscape-event-callbacks-1', 'tapEdge')])
