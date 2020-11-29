@@ -320,7 +320,7 @@ def create_query(n_clicks, value):
               [Input('sql-querry-dbc', 'value')])
 def execute_query(n_clicks, value):
     if ((not n_clicks) or (value is None)):
-        return ''
+        return ' '
     return Query.execute_query(value, connection)
 
 @app.callback(Output('tap-edge-json-output', 'children'),
@@ -344,7 +344,7 @@ def update_cytoscape_layout(layout):
               Output('tab-relation-json-output', 'children'),
               [Input('cytoscape-event-callbacks-1', 'tapNodeData')],
               [State('cytoscape-event-callbacks-1', 'elements'),
-               State('radio-expand2', 'value')])
+               State('radio-expand2','value')])
 def generate_elements(nodeData, elements, expansion_mode):
     if not nodeData:
         return default_elements, default_stylesheet, json.dumps([])
