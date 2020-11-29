@@ -78,7 +78,6 @@ def NamedDropdown(name, **kwargs):
                 children=f'{name}:',
                 style={'margin-left': '3px'}
             ),
-
             dcc.Dropdown(**kwargs)
         ]
     )

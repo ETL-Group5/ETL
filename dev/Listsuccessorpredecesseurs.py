@@ -17,12 +17,15 @@ def successors_predecesseurs(table_columns_relations):
     cyto_nodes=[]
     cyto_arcs=[]
 
-    for source, fk, target in zip(table_columns_relations['tab_fille'],
+    for source, fk, target, col_source, col_target in zip(table_columns_relations['tab_fille'],
                               table_columns_relations['name_constraint_fk'],
-                              table_columns_relations['tab_mere']):
+                              table_columns_relations['tab_mere'],
+                              table_columns_relations['col_fille'],
+                              table_columns_relations['col_mere']):
         cyto_source = {"data": {"id": source, "label": str(source)}}
         cyto_target = {"data": {"id": target, "label": str(target)}}
-        cyto_arc    = {'data': {'id': source+'-'+target, 'source': source, 'target': target, 'label': str(fk)}}
+        cyto_arc    = {'data': {'id': source+'-'+target, 'source': source, 'target': target,'label': str(fk),
+                                'col_fille':col_source, 'col_mere':col_target}}
 
         if source not in nodes:
             nodes.add(source)

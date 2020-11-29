@@ -7,8 +7,10 @@ import plotly.express as px
 from dash.dependencies import Input, Output, State
 import json
 
+
 import dash_cytoscape as cyto
 
+import Query
 import Listsuccessorpredecesseurs
 import ConstDF
 import NodesRelations
@@ -155,11 +157,13 @@ CONTENT_STYLE = {
     "padding": "2rem 1rem",
 }
 SECTION1_STYLE = {
-    "height": "95vh"
+    "height": "auto"
 }
 WIDTH100 = {
     "width" : "100%"
 }
+
+
 
 # test_modal = dbc.Row(
 #     [
@@ -169,6 +173,10 @@ WIDTH100 = {
 #     ])
 
 
+dropdown_layout_items = [
+                dbc.DropdownMenuItem("First"),
+                dbc.DropdownMenuItem("Second"),
+]
 
 navbar2 = \
 dbc.Row(
@@ -186,6 +194,7 @@ dbc.Row(
         ),
     ],
     color="primary",
+    className="navBarContainer",
     dark=True,
     ),width=12
     )
@@ -200,7 +209,7 @@ section1 = dbc.Row(
     [
         html.H2("StagBI25", className="display-5"),
         html.Hr(),
-        html.P("Select a graph : ", className="lead"),
+        html.P("Graph view : ", className="lead"),
         dbc.Nav(
             [
                 dbc.NavLink("Full size", href="/page-1", id="page-1-link"),
@@ -253,75 +262,178 @@ html.Div(
                 ],value='All for the node'
             ),width=12,
         ),
+        html.Hr(),
+        dbc.Col([
+            html.Hr(),
+            drc.NamedDropdown(
+                name='Layout type',
+                id='dropdown-layout',
+                options=drc.DropdownOptionsList(
+                    'grid',
+                    'breadthfirst',
+                    'cose'
+                ),
+                value='grid',
+                clearable=False,
+            )
+        ],width=12, className="dropdownColumn"),
         ],row=True,
         ),
-                                      drc.NamedRadioItems(
-                                          name='Expand',
-                                          id='radio-expand',
-                                          options=drc.DropdownOptionsList(
-                                              'predecessors',
-                                              'successors',
-                                              'All for the node'
-                                          ),
-                                          value='All for the node'
-                                      )
+        dbc.Col([
+            html.Hr(),
+            html.P("Layout type : ", className="lead"),
+            dbc.DropdownMenu(label="Dropup", children=dropdown_layout_items, direction="up")
+        ])
+      #   drc.NamedRadioItems(
+      #     name='Expand',
+      #     id='radio-expand',
+      #     options=drc.DropdownOptionsList(
+      #         'predecessors',
+      #         'successors',
+      #         'All for the node'
+      #     ),
+      #     value='All for the node'
+      # )
     ]
 )
     ],style=SIDEBAR_STYLE,
-)
-        ,width=2, className="bg-light"),
+),width=2, className="bg-light"),
+
+        # dbc.Col(
+        #     dbc.Row(
+        #         [], className="bg-light", id="page-content", style=CONTENT_STYLE
+        #     ),
+        #
+        # ),
+
+        dbc.Col([
+            dbc.Row(
+                [
+
+                ], className="bg-light", id="page-content",
+
+            ),
+            dbc.Row(
+                [
+                dbc.Col([dbc.Button("Generate SQL Query", color="primary", className="mr-2 btn btn-outline btn-lg", id="generate_button"),
+                         dbc.Button("Execute query", className="mr-3 btn-outline-secondary btn-lg"),
+                         ],width=8,className="mainButtonsContainer"),
+                dbc.Col([dbc.Textarea(id='sql-querry',bs_size="md",contentEditable=False,className="mb-3 textareaQuery", placeholder="SELECT ... \nFROM ... \nWHERE ...")],width=12, className="queryContainer"),
+                ], className="bg-light generateQueryContainer", id="page-content-main",
+
+            )
+
+
+
+
+        ]),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         ##RIGHT
 
         dbc.Col(
-        # dbc.Row([
-        #     html.P("Graph viewqsdfqsdfqsdf 1")
-        #     ])
-
              dbc.Row(
             [
+                html.P("Choose your relations : ", className="lead"),
+                dcc.Dropdown(
+                    id='tables-relation',
+                    clearable=True,
+                    placeholder="Select relations tables",
+                    multi=True,
+                ),
+                html.Hr(),
+                dcc.Tabs(id='tabs', children=[
+                    dcc.Tab(label='Control Panel', children=[
+                        drc.NamedDropdown(
+                            name='Layout',
+                            id='dropdown-layout2',
+                            options=drc.DropdownOptionsList(
+                                'random',
+                                'grid',
+                                'circle',
+                                'concentric',
+                                'breadthfirst',
+                                'cose'
+                            ),
+                            value='grid',
+                            clearable=False,
+                        )
 
-            ], className="bg-dark, testclass",id="page-content",style=CONTENT_STYLE
+                    ]),
+                    dcc.Tab(label='JSON', children=[
+                        html.Div(style=styles['tab'], children=[
+                            html.P('Table-Relations Object JSON:'),
+                            html.Pre(
+                                id='tab-relation-json-output',
+                                style=styles['json-output']
+                            )
+                        ])
+                    ])
+                ]),
+                                # dcc.ConfirmDialogProvider(
+                                #     children=html.Button(
+                                #         children='Create the query',
+                                #         id='id-button-query',
+                                #         n_clicks=0,
+                                #         className='button-querry',
+                                #         style={'background-color': '#4CAF50',
+                                #                 'color':'white',
+                                #                 'width': '250px',
+                                #                 'box-shadow': '0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19)'
+                                #                }
+                                #     ),
+                                #   id='create_the_query',
+                                #   message='You have selected the tables relations. '
+                                #           'Your SQL query will be created'
+                                # ),
+                                # dcc.Textarea(
+                                #     id='sql-querry2',
+                                #     placeholder='Correct the query',
+                                #     # value='This is a TextArea component',
+                                #     style={'width': '100%'}
+                                # ),
+                                # dcc.ConfirmDialogProvider(
+                                #     children=html.Button(
+                                #         'Execute the Query',
+                                #         n_clicks=0,
+                                #         className='button-execute-querry',
+                                #         style={'background-color': '#4CAF50',
+                                #                 'color':'white',
+                                #                 'width': '250px',
+                                #                 'box-shadow': '0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19)',
+                                #                 'position':'absolute'
+                                #                }
+                                #     ),
+                                #   id='execute_the_query',
+                                #   message='Your query will be executed'
+                                # ),
+            ], className="nicebg",id="right-bar",style=CONTENT_STYLE
         ),
-        width=10, className="bg-light"
+        width=2, className="bg-light niceBackground"
         )
+
+
+
     ],align="left",
      no_gutters=False,
      style=SECTION1_STYLE
 )
 
-section2 = dbc.Row(
-    [
-
-  cyto.Cytoscape(
-      id='cytoscape-event-callbacks-1',
-      stylesheet=default_stylesheet,
-      layout={
-          'name': 'cose',
-          'idealEdgeLength': 100,
-          'nodeOverlap': 20,
-          'refresh': 20,
-          'fit': True,
-          'padding': 30,
-          'randomize': False,
-          'componentSpacing': 100,
-          'nodeRepulsion': 400000,
-          'edgeElasticity': 100,
-          'nestingFactor': 5,
-          'gravity': 80,
-          'numIter': 1000,
-          'initialTemp': 200,
-          'coolingFactor': 0.95,
-          'minTemp': 1.0
-      },
-responsive=True,
-      # layout={'name': 'circle', "nodeDimensionsIncludeLabels":False, "startAngle": 3 / 2 * math.pi},
-      # style={'width': '100%', 'height': '900px'},
-      style={'width': '100%', 'height': '100vh'},
-      elements=default_elements
-  ),
-
-        ])
 
 
 # Load extra layouts
@@ -339,7 +451,7 @@ app.css.config.serve_locally = True
 
 app.layout = html.Div([dcc.Location(id="url"),navbar2,section1
                           # , section2
-])
+], className="mainContainer")
 
 
 graph_full = cyto.Cytoscape(
@@ -366,9 +478,53 @@ graph_full = cyto.Cytoscape(
 responsive=True,
       # layout={'name': 'circle', "nodeDimensionsIncludeLabels":False, "startAngle": 3 / 2 * math.pi},
       # style={'width': '100%', 'height': '900px'},
-      style={'width': '100%', 'height': '100vh'},
+      style={'width': '100%', 'height': '70vh', 'max-height':'70vh'},
       elements=default_elements
   )
+
+
+@app.callback(Output('tables-relation','options'),
+              [Input('tab-relation-json-output', 'children')])
+def add_relations_to_DropdownOptions(jsonified_cleaned_data):
+    relations = json.loads(jsonified_cleaned_data)
+    relations_flatten = [item for sublist in relations for item in sublist]
+    relations_items = [{'label': nom_relation,
+         'value':nom_relation} for nom_relation in relations_flatten]
+    relations_drop_menu.extend(relations_items)
+    return relations_drop_menu
+
+@app.callback(Output('sql-querry', 'value'),
+              [Input('generate_button', 'n_clicks')],
+              [Input('tables-relation', 'value')])
+def create_query(submit_n_clicks, value):
+    if not submit_n_clicks:
+        return ''
+    # return """
+    #     Submitted "{}" times,
+    #     values is "{}"
+    #     """.format(submit_n_clicks, Query.query_and_store(value, list_dict_successors_predecessors[5]))
+    return Query.query_and_store(value, list_dict_successors_predecessors[5])
+
+
+
+
+@app.callback(Output('tap-edge-json-output', 'children'),
+              [Input('cytoscape-event-callbacks-1', 'tapEdge')])
+def display_tap_edge(data):
+    return json.dumps(data, indent=2)
+
+@app.callback(Output('cytoscape-mouseoverNodeData-output', 'children'),
+                    Input('cytoscape-event-callbacks-1', 'mouseoverNodeData'))
+def displayMouseonNodeData(data):
+    if data:
+        return "You are hovering on the table: " + data['label']
+
+@app.callback(Output('cytoscape-event-callbacks-1', 'layout'),
+              [Input('dropdown-layout', 'value')])
+def update_cytoscape_layout(layout):
+    return {'name': layout}
+
+
 
 
 @app.callback(
@@ -403,13 +559,14 @@ def render_page_content(pathname):
 
 @app.callback(Output('cytoscape-event-callbacks-1', 'elements'),
               Output('cytoscape-event-callbacks-1','stylesheet'),
+              Output('tab-relation-json-output', 'children'),
               [Input('cytoscape-event-callbacks-1', 'tapNodeData')],
               [State('cytoscape-event-callbacks-1', 'elements'),
-               State('radio-expand', 'value')])
+               State('radio-expand2', 'value')])
 
 def generate_elements(nodeData, elements, expansion_mode):
     if not nodeData:
-        return default_elements, default_stylesheet
+        return default_elements, default_stylesheet, json.dumps([])
     a,b=[],[]
     for element in elements:
         if (nodeData['id'] == element.get('data').get('id')):
@@ -518,7 +675,7 @@ def generate_elements(nodeData, elements, expansion_mode):
 
     a.extend(b)
     stylesheet=new_stylesheet(default_stylesheet)
-    return elements, stylesheet
+    return elements, stylesheet, json.dumps(a)
 
 
 
