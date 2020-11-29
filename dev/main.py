@@ -221,8 +221,8 @@ app.layout = html.Div(children=[
                                           # style={'width': '100%', 'height': '900px'},
                                           style={'width': '100%', 'height': '100vh'},
                                           elements=default_elements,
-                                          minZoom=1,
-                                          maxZoom=1,
+                                          # minZoom=1,
+                                          # maxZoom=1,
                                           panningEnabled=True
                                       ),
                             # Hidden div inside the app that stores the intermediate value
