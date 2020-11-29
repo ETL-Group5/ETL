@@ -1,5 +1,8 @@
 def query_and_store(value, tables_columns_relations):
 
+    if not value:
+        return ''
+
     value_unique=sorted(set(value))
     print(value_unique)
     list_relations_for_query=[tables_columns_relations[i] for i in range(0, len(tables_columns_relations))

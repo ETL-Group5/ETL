@@ -6,6 +6,7 @@ import dash_bootstrap_components as dbc
 import dash_html_components as html
 import dash_core_components as dcc
 import dash_reusable_components as drc
+# import plotly.express as px
 import Listsuccessorpredecesseurs
 import Query
 from dash.dependencies import Input, Output, State
@@ -26,6 +27,7 @@ default_elements=construct_allnodes.set_all_nodes_arcs(default_elements)
 list_relations=construct_allnodes.set_list_relations([],'')
 relations_drop_menu=[]
 relations_toggle=[]
+# {'data': {'id': '108082478497335384404', 'label': 'User #84404'}, 'classes': 'genesis'}
 styles = {
     'pre': {
         'border': 'thin lightgrey solid',
@@ -136,6 +138,15 @@ app.layout = html.Div(children=[
                               html.P('''Select the relations between tables you would like to keep.'''),
                               dcc.Dropdown(
                                   id='tables-relation',
+                                  # options=[{'label':nom_relation,
+                                  #       'value':nom_relation} for nom_relation in list_relations],
+                                  # options=[
+                                  #   # options=[{'label': k, 'value': k} for k in all_options.keys()]
+                                  #     {'label': 'New York City', 'value': 'NYC'},
+                                  #     {'label': u'Montréal', 'value': 'MTL'},
+                                  #     {'label': 'San Francisco', 'value': 'SF'}
+                                  # ],
+                                  # value=['MTL', 'SF'],
                                   clearable=True,
                                   placeholder="Select relations tables",
                                   multi=True,
@@ -143,6 +154,15 @@ app.layout = html.Div(children=[
                                   #         'color':'white'
                                   #        }
                                   ),
+                                    # dbc.Select(
+                                    #     id="select",
+                                    #     options=[
+                                    #         {"label": "Option 1", "value": "1"},
+                                    #         {"label": "Option 2", "value": "2"},
+                                    #         {"label": "Disabled option", "value": "3", "disabled": True},
+                                    #     ],
+                                    # ),
+
                               dbc.Label("Switch off the relations you do not want to keep"),
                               dbc.Checklist(
                                   # options=[
@@ -155,6 +175,14 @@ app.layout = html.Div(children=[
                                   switch=True,
                                   inline=True,
                               ),
+                              # dcc.Checklist(
+                              #     options=[
+                              #         {'label': 'New York City', 'value': 'NYC'},
+                              #         {'label': u'Montréal', 'value': 'MTL'},
+                              #         {'label': 'San Francisco', 'value': 'SF'}
+                              #     ],
+                              #     value=['MTL', 'SF']
+                              # ),
                               dcc.Tabs(id='tabs', children=[
                                   dcc.Tab(label='Control Panel', children=[
                                       drc.NamedDropdown(
@@ -183,6 +211,21 @@ app.layout = html.Div(children=[
                                       )
 
                                   ]),
+
+                                  # dcc.Tab(label='JSON', children=[
+                                  #     html.Div(style=styles['tab'], children=[
+                                  #         html.P('Node Object JSON:'),
+                                  #         html.Pre(
+                                  #             id='tap-node-json-output',
+                                  #             style=styles['json-output']
+                                  #         ),
+                                  #         html.P('Edge Object JSON:'),
+                                  #         html.Pre(
+                                  #             id='tap-edge-json-output',
+                                  #             style=styles['json-output']
+                                  #         )
+                                  #     ])
+                                  # ])
                                   dcc.Tab(label='JSON', children=[
                                       html.Div(style=styles['tab'], children=[
                                           html.P('Table-Relations Object JSON:'),
@@ -245,22 +288,22 @@ app.layout = html.Div(children=[
                                 # html.Pre(id='cytoscape-tapNodeData-json', style=styles['pre']),
                                 html.P(id='cytoscape-tapNodeData-output'),
                                 html.P(id='cytoscape-mouseoverNodeData-output'),
-                                # dcc.ConfirmDialogProvider(
-                                #     children=html.Button(
-                                #         children='Create the query',
-                                #         id='id-button-query',
-                                #         n_clicks=0,
-                                #         className='button-querry',
-                                #         style={'background-color': '#4CAF50',
-                                #                 'color':'white',
-                                #                 'width': '250px',
-                                #                 'box-shadow': '0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19)'
-                                #                }
-                                #     ),
-                                #   id='create_the_query',
-                                #   message='You have selected the tables relations. '
-                                #           'Your SQL query will be created'
-                                # ),
+                                dcc.ConfirmDialogProvider(
+                                    children=html.Button(
+                                        children='Create the query',
+                                        id='id-button-query',
+                                        n_clicks=0,
+                                        className='button-querry',
+                                        style={'background-color': '#4CAF50',
+                                                'color':'white',
+                                                'width': '250px',
+                                                'box-shadow': '0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19)'
+                                               }
+                                    ),
+                                  id='create_the_query',
+                                  message='You have selected the tables relations. '
+                                          'Your SQL query will be created'
+                                ),
                                 # dcc.Textarea(
                                 #     id='sql-querry',
                                 #     placeholder='Correct the query',
@@ -274,7 +317,7 @@ app.layout = html.Div(children=[
                                                           'color': 'white',
                                                           'width': '250px',
                                                           'box-shadow': '0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19)',
-                                                          # 'position': 'absolute'
+                                                          'position': 'absolute'
                                                           },
                                                    n_clicks=0,
                                                    ),
@@ -287,27 +330,24 @@ app.layout = html.Div(children=[
                                             is_open=False,
                                             target="query-button-create",
                                         ),
-                                            dbc.Textarea(
-                                                id='sql-querry-dbc',
-                                                valid=True,
-                                                # bs_size="sm",
-                                                className="mb-3",
-                                                placeholder="Modify Query",
-                                        ),
                                         # html.Span(id="example-output", style={"vertical-align": "middle"}),
                                     ]
                                 ),
-                                # html.Div(
-                                #     [
-                                #         dbc.Textarea(
-                                #             id='sql-querry-dbc',
-                                #             valid=True,
-                                #             # bs_size="sm",
-                                #             className="mb-3",
-                                #             placeholder="Modify Query",
-                                #         ),
-                                #     ]
-                                # ),
+                                html.Div(
+                                    [
+                                        # dbc.Textarea(className="mb-3", placeholder="Text Query"),
+                                        dbc.Textarea(
+                                            id='sql-querry-dbc',
+                                            valid=True,
+                                            # bs_size="sm",
+                                            className="mb-3",
+                                            placeholder="Modify Query",
+                                        ),
+                                        # dbc.Textarea(
+                                        #     invalid=True, bs_size="lg", placeholder="A large, invalid Textarea"
+                                        # ),
+                                    ]
+                                ),
                                 dcc.ConfirmDialogProvider(
                                     children=html.Button(
                                         'Execute the Query',
@@ -337,6 +377,7 @@ def toggle_popover(n, is_open):
         return not is_open
     return is_open
 
+
 @app.callback(Output('tables-relation','options'),
               [Input('tab-relation-json-output', 'children')])
 def add_relations_to_DropdownOptions(jsonified_cleaned_data):
@@ -358,25 +399,49 @@ def add_relations_to_toggle_checklist(jsonified_cleaned_data):
     return relations_toggle
 
 @app.callback(Output('sql-querry-dbc', 'value'),
-              # [Input('create_the_query', 'submit_n_clicks')],
-              [Input('query-button-create', 'n_clicks')],
+              [Input('create_the_query', 'submit_n_clicks')],
               [Input('Relations-Tables-Toggle', 'value')])
-def create_query(n_clicks, value):
-    if ((not n_clicks) or (value is None)):
+def create_query(submit_n_clicks, value):
+    if ((not submit_n_clicks) or (value is None)):
         return ''
+    # return """
+    #     Submitted "{}" times,
+    #     values is "{}"
+    #     """.format(submit_n_clicks, Query.query_and_store(value, list_dict_successors_predecessors[5]))
     return Query.query_and_store(value, list_dict_successors_predecessors[5])
-# def create_query(submit_n_clicks, value):
-#     if ((not submit_n_clicks) or (value is None)):
-#         return ''
-#     return Query.query_and_store(value, list_dict_successors_predecessors[5])
 
 # @app.callback(Output('sql-querry', 'value'),
 #               [Input('create_the_query', 'submit_n_clicks')],
 #               [Input('tables-relation', 'value')])
 # def create_query(submit_n_clicks, value):
-#     if ((not submit_n_clicks) or (value is None)):
+#     if not submit_n_clicks:
 #         return ''
-#     return Query.query_and_store(value, list_dict_successors_predecessors[5])
+#     elif(value is None):
+#         return ''
+#     else:
+#     # return """
+#     #     Submitted "{}" times,
+#     #     values is "{}"
+#     #     """.format(submit_n_clicks, Query.query_and_store(value, list_dict_successors_predecessors[5]))
+#         return Query.query_and_store(value, list_dict_successors_predecessors[5])
+
+
+# @app.callback(Output('cytoscape-tapNodeData-json', 'children'),
+#               [Input('cytoscape-event-callbacks-1', 'tapNodeData')])
+# def displayTapNodeData(data):
+#     return json.dumps(data, indent=2)
+
+# @app.callback(Output('cytoscape-tapNodeData-output', 'children'),
+#                   [Input('cytoscape-event-callbacks-1', 'tapNodeData')])
+# def displayTapNodeData(data):
+#     if data:
+#         return "You recently clicked/tapped the city: " + data['label']
+
+# @app.callback(Output('tap-node-json-output', 'children'),
+#               [Input('cytoscape-event-callbacks-1', 'tapNode')])
+# def display_tap_node(data):
+#     return json.dumps(data, indent=2)
+
 
 @app.callback(Output('tap-edge-json-output', 'children'),
               [Input('cytoscape-event-callbacks-1', 'tapEdge')])
@@ -394,8 +459,10 @@ def displayMouseonNodeData(data):
 def update_cytoscape_layout(layout):
     return {'name': layout}
 
+
 @app.callback(Output('cytoscape-event-callbacks-1', 'elements'),
               Output('cytoscape-event-callbacks-1','stylesheet'),
+              # Output('intermediate-value', 'children')
               Output('tab-relation-json-output', 'children'),
               [Input('cytoscape-event-callbacks-1', 'tapNodeData')],
               [State('cytoscape-event-callbacks-1', 'elements'),
@@ -404,8 +471,19 @@ def generate_elements(nodeData, elements, expansion_mode):
     if not nodeData:
         return default_elements, default_stylesheet, json.dumps([])
 
+    # If the node has already been expanded, we don't expand it again
+    # if nodeData.get('expanded'):
+    #     return elements
     a,b=[],[]
+
+    # This retrieves the currently selected element, and tag it as expanded
+    # for element in elements:
+    #     if nodeData['id'] == element.get('data').get('id'):
+    #         element['data']['expanded'] = True
+    #         break
     for element in elements:
+        # print(nodeData)
+        # print(element.get('selectable'))
         if (nodeData['id'] == element.get('data').get('id')):
             if (element.get('selectable')==True):
                 element['data']['expanded'] = True
@@ -422,6 +500,7 @@ def generate_elements(nodeData, elements, expansion_mode):
 
     following_nodes = list_dict_successors_predecessors[0].get(nodeData['id'])
     following_arcs = list_dict_successors_predecessors[1].get(nodeData['id'])
+    # print(all_nodes)
 
     if expansion_mode == 'predecessors':
 
@@ -451,9 +530,11 @@ def generate_elements(nodeData, elements, expansion_mode):
         if all_nodes:
             for node in all_nodes:
                 node['classes'] ='ffNodes'
+                # elements.append(node)
                 for i in range(0, len(elements)):
                     if(elements[i].get('data').get("id") == node['data']['id']):
                         elements[i]=node
+                        # elements[i]['classes']='ffNodes'
                         break
 
         if followers_arcs:
@@ -512,6 +593,26 @@ def generate_elements(nodeData, elements, expansion_mode):
     a.extend(b)
     stylesheet=new_stylesheet(default_stylesheet)
     return elements, stylesheet, json.dumps(a)
+
+# @app.callback(Output('tables-relation','options'),
+#                [Input('cytoscape-event-callbacks-1','selectedNodeData'),
+#                 Input("cytoscape-event-callbacks-1", 'selectedEdgeData')])
+# def add_relations_tables(selectedNode, selectedEdge):
+#     if not selectedNode:
+#         return []
+#     else:
+#         print(selectedNode, selectedEdge)
+
+
+# @app.callback(Output('tables-relation','options'),
+#               [Input('cytoscape-event-callbacks-1','tapNode')])
+# def add_relations_to_DropdownOptions(node):
+#     if not node:
+#         return []
+#     else:
+#         # print ([node['edgesData'][i] for i in (0, len(node['edgesData'])-1)])
+#          print([node['edgesData'][i]['id'] for i in (0, len(node['edgesData'])-1)])
+#         # return [{'label': node['edgesData'], 'value': node['data']['label']}]
 
 if __name__ == '__main__':
     app.run_server(host='0.0.0.0', port=8080, debug=True)
