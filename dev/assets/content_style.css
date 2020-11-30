@@ -59,3 +59,38 @@
     padding-right: 15px;
     width: 100%;
 }
+
+#page-3-link {
+    display:none!important
+}
+
+h2.display-5 {
+    font-size: 1.75em!important;
+}
+
+#cytoscape-event-callbacks-1 {
+    padding: 30px;
+}
+
+
+button#close-xl {
+    background-color: #2C3E50!important;
+}
+
+.table-bordered td {
+    border: 1px solid #dee2e6;
+}
+
+tr {
+    background-color: #ECF0F1;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #2C3E50!important;
+    color:white!important;
+}
+
+thead {
+    font-size: 1.25rem;
+}
+

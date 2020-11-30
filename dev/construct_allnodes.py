@@ -18,3 +18,13 @@ def set_all_nodes_arcs(elements):
 def set_list_relations(current_list,list_element):
     current_list.append(list_element)
     return current_list
+
+def make_table(table_columns, name):
+    # print(table_columns)
+    if(name is None):
+        return table_columns
+    df=table_columns[table_columns['table_name']==name]
+    print(df)
+    return df
+    # table = dbc.Table.from_dataframe(df, striped=True, bordered=True, hover=True)
+    # return table

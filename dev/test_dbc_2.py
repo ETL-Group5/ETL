@@ -6,7 +6,7 @@ import dash_reusable_components as drc
 import plotly.express as px
 from dash.dependencies import Input, Output, State
 import json
-
+import pandas as pd
 
 import dash_cytoscape as cyto
 
@@ -18,7 +18,7 @@ import construct_allnodes
 
 
 #functions to call
-metadata=ConstDF.readbd()
+metadata, connection=ConstDF.readbd()
 default_elements=NodesRelations.elements(metadata)
 list_dict_successors_predecessors=Listsuccessorpredecesseurs.successors_predecesseurs(metadata['table_columns_relations'])
 joined_list = [*list_dict_successors_predecessors[4], *list_dict_successors_predecessors[5]]
@@ -26,9 +26,20 @@ default_elements=joined_list
 default_elements=construct_allnodes.set_all_nodes_arcs(default_elements)
 list_relations=construct_allnodes.set_list_relations([],'')
 relations_drop_menu=[]
+relations_toggle=[]
 
+df = pd.DataFrame(
+    {
+        "First Name": ["Arthur", "Ford", "Zaphod", "Trillian"],
+        "Last Name": ["Dent", "Prefecct", "Beeblebcrox", "Astra"],
+        "Lassdft Name": ["Dsent", "Prfghefect", "Beeblebrox", "Astra"],
+        "Lsdfe": ["Defnt", "Prsefect", "Beeblebrox", "Astra"],
+        "Laze": ["Dent", "Predfect", "Beeblegsbrox", "Asqeftra"],
+        "Lahhhhhhhame": ["Ddent", "Prefect", "Beeblebvdrox", "Astra"],
+    }
+)
 
-
+table = dbc.Table.from_dataframe(df, striped=True, bordered=True, hover=True)
 
 #### VARIABLES / STYLE
 
@@ -278,12 +289,7 @@ html.Div(
             )
         ],width=12, className="dropdownColumn"),
         ],row=True,
-        ),
-        dbc.Col([
-            html.Hr(),
-            html.P("Layout type : ", className="lead"),
-            dbc.DropdownMenu(label="Dropup", children=dropdown_layout_items, direction="up")
-        ])
+        )
       #   drc.NamedRadioItems(
       #     name='Expand',
       #     id='radio-expand',
@@ -316,9 +322,41 @@ html.Div(
             dbc.Row(
                 [
                 dbc.Col([dbc.Button("Generate SQL Query", color="primary", className="mr-2 btn btn-outline btn-lg", id="generate_button"),
-                         dbc.Button("Execute query", className="mr-3 btn-outline-secondary btn-lg"),
+                         dbc.Button("Execute query", className="mr-3 btn-outline-secondary btn-lg",id="execute-query"),
+
+        dbc.Modal(
+            [
+                dbc.ModalHeader(dbc.Textarea(id='test_df',bs_size="md",contentEditable=False,className="mb-3 textareaQuery",
+                                      value="SELECT ... \nFROM ... \nWHERE ..."
+                                      ,spellCheck=False)),
+                dbc.ModalBody(
+
+                    dbc.Table.from_dataframe(df, striped=True, bordered=True, hover=True)
+                ),
+
+                dbc.ModalFooter([
+                    dbc.Col([html.P("Download query result : ", className="lead")],width=12),
+
+                    dbc.ButtonGroup(
+                        [dbc.Button(".CSV"), dbc.Button(".JSON"), dbc.Button(".SQL")],
+                        size="md",
+                        className="mr-1",
+                    ),
+                    dbc.Button("Close", id="close-xl", className="ml-auto btn-primary",color="primary"),
+
+                ]),
+            ],
+            id="modal-xl",
+            size="xl",
+        ),
+
+
+
                          ],width=8,className="mainButtonsContainer"),
-                dbc.Col([dbc.Textarea(id='sql-querry',bs_size="md",contentEditable=False,className="mb-3 textareaQuery", placeholder="SELECT ... \nFROM ... \nWHERE ...")],width=12, className="queryContainer"),
+                dbc.Col([dbc.Textarea(id='sql-querry',bs_size="md",contentEditable=False,className="mb-3 textareaQuery",
+                                      placeholder="SELECT ... \nFROM ... \nWHERE ..."
+                                      ,spellCheck=False)
+                         ],width=12, className="queryContainer"),
                 ], className="bg-light generateQueryContainer", id="page-content-main",
 
             )
@@ -350,12 +388,18 @@ html.Div(
              dbc.Row(
             [
                 html.P("Choose your relations : ", className="lead"),
-                dcc.Dropdown(
-                    id='tables-relation',
-                    clearable=True,
-                    placeholder="Select relations tables",
-                    multi=True,
-                ),
+                # dcc.Dropdown(
+                #     id='tables-relation',
+                #     clearable=True,
+                #     placeholder="Select relations tables",
+                #     multi=True,
+                # ),
+                html.Hr(),
+                dbc.Checklist(
+                                  id="Relations-Tables-Toggle",
+                                  switch=True,
+                                  inline=True,
+                              ),
                 html.Hr(),
                 dcc.Tabs(id='tabs', children=[
                     dcc.Tab(label='Control Panel', children=[
@@ -463,7 +507,7 @@ graph_full = cyto.Cytoscape(
           'nodeOverlap': 20,
           'refresh': 20,
           'fit': True,
-          'padding': 30,
+          'padding': 50,
           'randomize': False,
           'componentSpacing': 100,
           'nodeRepulsion': 400000,
@@ -473,17 +517,62 @@ graph_full = cyto.Cytoscape(
           'numIter': 1000,
           'initialTemp': 200,
           'coolingFactor': 0.95,
-          'minTemp': 1.0
+          'minTemp': 1.0,
+          'responsive' : True,
+          'fit' : True
+
       },
-responsive=True,
+      responsive=True,
       # layout={'name': 'circle', "nodeDimensionsIncludeLabels":False, "startAngle": 3 / 2 * math.pi},
       # style={'width': '100%', 'height': '900px'},
       style={'width': '100%', 'height': '70vh', 'max-height':'70vh'},
-      elements=default_elements
+      elements=default_elements,
+      minZoom=0.7,
+      maxZoom=1,
+      panningEnabled=True, userPanningEnabled=True,
+        zoom=0.7
+
   )
 
 
-@app.callback(Output('tables-relation','options'),
+
+def toggle_modal(n1, n2, is_open):
+    if n1 or n2:
+        return not is_open
+    return is_open
+
+
+app.callback(
+    Output("modal-xl", "is_open"),
+    [Input("execute-query", "n_clicks"),
+     Input("close-xl", "n_clicks")],
+    [State("modal-xl", "is_open")],
+)(toggle_modal)
+
+
+# @app.callback(
+#     Output("popover", "is_open"),
+#     [Input('cytoscape-event-callbacks-1', "tapNode")],
+#     [State("popover", "is_open")],
+# )
+# def show_table(node, is_open):
+#     if not node:
+#         return is_open
+#     df=construct_allnodes.make_table(metadata['table_columns'], node['data']['label'])
+#     return not is_open
+
+
+@app.callback(Output('test_df', 'value'),
+              # [Input('create_the_query', 'submit_n_clicks')],
+              [Input('execute-query', 'n_clicks')],
+              [Input('sql-querry-dbc', 'value')])
+def execute_query(n_clicks, value):
+    if ((not n_clicks) or (value is None)):
+        return ' '
+    return Query.execute_query(value, connection)
+
+
+@app.callback(Output('Relations-Tables-Toggle','options'),
               [Input('tab-relation-json-output', 'children')])
 def add_relations_to_DropdownOptions(jsonified_cleaned_data):
     relations = json.loads(jsonified_cleaned_data)
@@ -495,7 +584,7 @@ def add_relations_to_DropdownOptions(jsonified_cleaned_data):
 
 @app.callback(Output('sql-querry', 'value'),
               [Input('generate_button', 'n_clicks')],
-              [Input('tables-relation', 'value')])
+              [Input('Relations-Tables-Toggle', 'value')])
 def create_query(submit_n_clicks, value):
     if not submit_n_clicks:
         return ''
@@ -503,6 +592,10 @@ def create_query(submit_n_clicks, value):
     #     Submitted "{}" times,
     #     values is "{}"
     #     """.format(submit_n_clicks, Query.query_and_store(value, list_dict_successors_predecessors[5]))
+    print("this is vazlue")
+    print(value)
+    print("this is dictionnary")
+    print(list_dict_successors_predecessors[5])
     return Query.query_and_store(value, list_dict_successors_predecessors[5])
 
 
@@ -544,8 +637,6 @@ def render_page_content(pathname):
         return graph_full
     elif pathname == "/page-2":
         return graph_full
-    elif pathname == "/page-3":
-        return html.P("Graph view 3")
     # If the user tries to reach a different page, return a 404 message
     return dbc.Jumbotron(
         [

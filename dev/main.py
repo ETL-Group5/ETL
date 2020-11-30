@@ -18,7 +18,7 @@ cyto.load_extra_layouts()
 
 app = dash.Dash(__name__,external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-metadata=ConstDF.readbd()
+metadata, connection=ConstDF.readbd()
 # default_elements=NodesRelations.elements(metadata)
 list_dict_successors_predecessors=Listsuccessorpredecesseurs.successors_predecesseurs(metadata['table_columns_relations'])
 joined_list = [*list_dict_successors_predecessors[4], *list_dict_successors_predecessors[5]]
