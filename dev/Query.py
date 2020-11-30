@@ -8,10 +8,8 @@ def query_and_store(value, tables_columns_relations):
     print(value_unique)
     list_relations_for_query=[tables_columns_relations[i] for i in range(0, len(tables_columns_relations))
                               if (tables_columns_relations[i]['data']['id'] in value_unique)]
-    # print(list_relations_for_query)
 
     list_tabs_in_query=[list_relations_for_query[0]['data']['source'].lower()]
-    # print(list_tabs_in_query)
     query = f"""
     SELECT COUNT(*) 
     FROM {list_relations_for_query[0]['data']['source'].lower()}"""

@@ -225,6 +225,18 @@ app.layout = html.Div(children=[
                                           # maxZoom=1,
                                           panningEnabled=True
                                       ),
+                              dbc.Popover(
+                                  [
+                                      dbc.PopoverHeader(id='popHeader'),
+                                      dbc.PopoverBody(id='popBody'),
+                                  ],
+                                  id="popover",
+                                  is_open=False,
+                                  target="cytoscape-event-callbacks-1",
+                              ),
+                              #   html.Div(
+                              #       id='div_popup'
+                              #   ),
                             # Hidden div inside the app that stores the intermediate value
                             #     html.Textarea(id='intermediate-value', style={'display': 'none'}),
                                 # html.Pre(id='cytoscape-tapNodeData-json', style=styles['pre']),
@@ -240,15 +252,6 @@ app.layout = html.Div(children=[
                                                           },
                                                    n_clicks=0,
                                                    ),
-                                        dbc.Popover(
-                                            [
-                                                dbc.PopoverHeader("Popover header"),
-                                                dbc.PopoverBody("And here's some amazing content. Cool!"),
-                                            ],
-                                            id="popover",
-                                            is_open=False,
-                                            target="cytoscape-event-callbacks-1",
-                                        ),
                                             dbc.Textarea(
                                                 id='sql-querry-dbc',
                                                 valid=True,
@@ -284,16 +287,39 @@ app.layout = html.Div(children=[
              ])
 ])
 
+# @app.callback(
+#     Output("div_popup", "children"),
+#     [Input('cytoscape-event-callbacks-1', "tapNode")]
+# )
+# def make_popover(node):
+#     if not node:
+#         return ''
+#     df = construct_allnodes.make_table(metadata['table_columns'], node['data']['label'])
+#     table = dbc.Table.from_dataframe(df, striped=True, bordered=True, hover=True)
+#     return dbc.Popover(
+#         [
+#             dbc.PopoverHeader(node['data']['label']),
+#             dbc.PopoverBody(table),
+#         ],
+#         id=f"popover-{node}",
+#         target=f"popover-{node}-target",
+#         placement=node,
+#         is_open=True
+#     )
+
 @app.callback(
+    Output("popBody", "children"),
+    Output("popHeader", "children"),
     Output("popover", "is_open"),
-    [Input('cytoscape-event-callbacks-1', "tapNode")],
+    [Input("cytoscape-event-callbacks-1", "tapNode")],
     [State("popover", "is_open")],
 )
 def show_table(node, is_open):
-    if not node:
-        return is_open
-    df=construct_allnodes.make_table(metadata['table_columns'], node['data']['label'])
-    return not is_open
+    if node:
+        df = construct_allnodes.make_table(metadata['table_columns'], node['data']['label'])
+        table = dbc.Table.from_dataframe(df, striped=True, bordered=True, hover=True)
+        return table, node['data']['label'], not is_open
+    return is_open
 
 @app.callback(Output('Relations-Tables-Toggle','options'),
               [Input('tab-relation-json-output', 'children')])
